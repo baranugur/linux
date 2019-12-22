@@ -1832,6 +1832,7 @@ static __latent_entropy struct task_struct *copy_process(
 	struct multiprocess_signals delayed;
 	struct file *pidfile = NULL;
 	u64 clone_flags = args->flags;
+    struct task_struct *parent_process;
 
 	/*
 	 * Don't allow sharing the root directory with processes in a different
@@ -1911,6 +1912,13 @@ static __latent_entropy struct task_struct *copy_process(
 	p = dup_task_struct(current, node);
 	if (!p)
 		goto fork_out;
+
+    parent_process = p->parent;
+
+    if (p->nice_inc != 0)
+        p->static_prio = parent_process->nice_inc + parent_process->static_prio;
+
+    p->nice_inc = parent_process->nice_inc;
 
 	/*
 	 * This _must_ happen before we call free_task(), i.e. before we jump
